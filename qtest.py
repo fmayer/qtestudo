@@ -397,6 +397,10 @@ class QBGTestResult(QTestResult):
         self.success_data.append(
             (test_name, test_descr, outp, '')
         )
+        font = QtGui.QFont()
+        if outp:
+            font.setItalic(True)
+        item.setFont(font)
         self.success.addItem(item)
         self.success.scrollToBottom()
     
@@ -407,6 +411,10 @@ class QBGTestResult(QTestResult):
         self.fail_data.append(
             (test_name, test_descr, outp, tb)
         )
+        font = QtGui.QFont()
+        if outp:
+            font.setItalic(True)
+        item.setFont(font)
         self.fail.addItem(item)
         self.fail.scrollToBottom()
     
@@ -417,6 +425,10 @@ class QBGTestResult(QTestResult):
         self.error_data.append(
             (test_name, test_descr, outp, tb)
         )
+        font = QtGui.QFont()
+        if outp:
+            font.setItalic(True)
+        item.setFont(font)
         self.error.addItem(item)
         self.error.scrollToBottom()
 
