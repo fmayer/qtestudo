@@ -48,24 +48,6 @@ from PyQt4 import QtGui, QtCore
 from unittest import TestResult, TestCase, TestSuite
 
 
-class PseudoFile:
-    def __init__(self):
-        self.content = ''
-    
-    def write(self, data):
-        self.content += data
-    
-    def clear(self):
-        self.content = ''
-    
-    def flush(self):
-        pass
-    
-    def writelines(self, lines):
-        for line in lines:
-            self.write(line)
-
-
 class QTestLoader(QtGui.QDialog):
     def __init__(self):
         QtGui.QDialog.__init__(self)
@@ -235,34 +217,16 @@ class QTestWindow(QtGui.QMainWindow):
         selector = QTestLoader()
         if selector.exec_():
             self.cases = TestSuite([s() for s in selector.selected])
-    
-
-class QTestRunner:
-    def __init__(self, result):
-        self.result = result
-
-    def run(self, test):
-        "Run the given test case or test suite."
-        self.result.setAmount(test.countTestCases() - 1)
-        startTime = time.time()
-        self.result.enter()
-        test(self.result)
-        self.result.done()
-        stopTime = time.time()
-        timeTaken = stopTime - startTime
-        run = self.result.testsRun
-        return self.result
 
 
-class QTestResult(TestResult, QtGui.QWidget):
+class QTestResult(QtGui.QWidget, TestResult):
     def __init__(self, status=None, descriptions=True):
         TestResult.__init__(self)
         QtGui.QWidget.__init__(self)
         
         self.status = status
         self.descriptions = descriptions
-        self.pseudo_file = PseudoFile()
-                
+        
         self.progress = QtGui.QProgressBar(self)
         
         self.success = QtGui.QListWidget(self)
@@ -307,6 +271,11 @@ class QTestResult(TestResult, QtGui.QWidget):
             QtCore.SIGNAL("itemDoubleClicked ( QListWidgetItem * )"),
             self.errorItemDoubleClicked
         )
+        
+        self.translate = {
+            'success': self.addSuccess,'failure': self.addFailure,
+            'error': self.addError, 'start': self.startTest
+        }
     
     def setAmount(self, amount):
         self.progress.setRange(0, amount)
@@ -328,62 +297,6 @@ class QTestResult(TestResult, QtGui.QWidget):
         view = QTestView(*self.fail_data[indx])
         view.show()
         self.views.append(view)
-
-    def startTest(self, test):
-        self.pseudo_file.clear()
-        TestResult.startTest(self, test)
-        self.progress.setValue(self.progress.value() + 1)
-        if self.status is not None:
-            self.status(str(test))
-
-    def addSuccess(self, test):
-        TestResult.addSuccess(self, test)
-        item = QtGui.QListWidgetItem(str(test))
-        if self.pseudo_file.content:
-            item.setToolTip(self.pseudo_file.content)
-        self.success_data.append(
-            (str(test), test.shortDescription(), self.pseudo_file.content, '')
-        )
-        self.success.addItem(item)
-        self.success.scrollToBottom()
-
-    def addError(self, test, err):
-        tb = ''.join(traceback.format_exception(*err))
-        TestResult.addError(self, test, err)
-        item = QtGui.QListWidgetItem(str(test))
-        item.setToolTip(tb)
-        self.error_data.append(
-            (str(test), test.shortDescription(), self.pseudo_file.content, tb)
-        )
-        self.error.addItem(item)
-        self.error.scrollToBottom()
-
-    def addFailure(self, test, err):
-        tb = ''.join(traceback.format_exception(*err))
-        TestResult.addFailure(self, test, err)
-        item = QtGui.QListWidgetItem(str(test))
-        item.setToolTip(tb)
-        self.fail_data.append(
-            (str(test), test.shortDescription(), self.pseudo_file.content, tb)
-        )
-        self.fail.addItem(item)
-        self.fail.scrollToBottom()
-    
-    def enter(self):
-        sys.stdout = sys.stderr = PseudoFile()
-    
-    def done(self):
-        sys.stdout = sys.__stdout__
-        sys.stderr = sys.__stderr__
-
-
-class QBGTestResult(QTestResult):
-    def __init__(self, status=None, descriptions=True):
-        QTestResult.__init__(self, status, descriptions)
-        self.translate = {
-            'success': self.addSuccess,'failure': self.addFailure,
-            'error': self.addError, 'start': self.startTest
-        }
     
     def startTest(self, test_name, test_descr):
         self.progress.setValue(self.progress.value() + 1)
@@ -472,7 +385,7 @@ class BGTestResult(TestResult):
         self.pseudo_file.truncate()
 
 
-class QBGTestRunner:
+class QTestRunner:
     def __init__(self, result):
         self.result = result
         self.done = False
