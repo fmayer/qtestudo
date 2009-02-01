@@ -468,13 +468,11 @@ class BGTestRunner:
         self.timer.start()
     
     def tick(self):
-        #print '.',
         c = True
         while c:
             try:
                 data = self.q.get_nowait()
                 if not data:
-                    #print 'closed'
                     self.timer.stop()
                     self.done = True
                     c = False
