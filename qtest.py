@@ -21,7 +21,11 @@ import sys
 import imp
 import time
 import inspect
+import StringIO
 import traceback
+
+from multiprocessing import Queue, Process
+from Queue import Empty
 
 from PyQt4 import QtGui, QtCore
 from unittest import TestResult, TestCase, TestSuite
@@ -358,6 +362,134 @@ class QTestResult(TestResult, QtGui.QWidget):
         sys.stdout = sys.stderr = PseudoFile()
     
     def done(self):
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
+
+
+class QBGTestResult(QTestResult):
+    def __init__(self, status=None, descriptions=True):
+        QTestResult.__init__(self, status, descriptions)
+        self.translate = {
+            'success': self.addSuccess,'failure': self.addFailure,
+            'error': self.addError, 'start': self.startTest
+        }
+    
+    def startTest(self, test_name, test_descr):
+        self.progress.setValue(self.progress.value() + 1)
+        if self.status is not None:
+            self.status(test_name)
+    
+    def addSuccess(self, test_name, test_descr, outp):
+        item = QtGui.QListWidgetItem(test_name)
+        if outp:
+            item.setToolTip(outp)
+        self.success_data.append(
+            (test_name, test_descr, outp, '')
+        )
+        self.success.addItem(item)
+        self.success.scrollToBottom()
+    
+    def addFailure(self, test_name, test_descr, tb, outp):
+        item = QtGui.QListWidgetItem(test_name)
+        if outp:
+            item.setToolTip(outp)
+        self.fail_data.append(
+            (test_name, test_descr, outp, tb)
+        )
+        self.fail.addItem(item)
+        self.fail.scrollToBottom()
+    
+    def addError(self, test_name, test_descr, tb, outp):
+        item = QtGui.QListWidgetItem(test_name)
+        if outp:
+            item.setToolTip(outp)
+        self.error_data.append(
+            (test_name, test_descr, outp, tb)
+        )
+        self.error.addItem(item)
+        self.error.scrollToBottom()
+
+
+class BGTestResult(TestResult):
+    def __init__(self, queue, pseudo_file):
+        TestResult.__init__(self)
+        self.queue = queue
+        self.pseudo_file = pseudo_file
+    
+    def setAmount(self, amount):
+        self.queue.put(("amount", [amount]))
+    
+    def startTest(self, test):
+        self.clearOutput()
+        test_name = str(test)
+        test_descr = test.shortDescription()
+        self.queue.put(("start", [test_name, test_descr]))
+    
+    def addSuccess(self, test):
+        test_name = str(test)
+        test_descr = test.shortDescription()
+        self.queue.put(("success", [test_name, test_descr, self.getOutput()]))
+    
+    def addError(self, test, err):
+        test_name = str(test)
+        test_descr = test.shortDescription()
+        tb = ''.join(traceback.format_exception(*err))
+        self.queue.put(("error", [test_name, test_descr, tb, self.getOutput()]))
+    
+    def addFailure(self, test, err):
+        test_name = str(test)
+        test_descr = test.shortDescription()
+        tb = ''.join(traceback.format_exception(*err))
+        self.queue.put(("failure", [test_name, test_descr, tb, self.getOutput()]))
+    
+    def getOutput(self):
+        return self.pseudo_file.getvalue()
+    
+    def clearOutput(self):
+        self.pseudo_file.truncate()
+
+
+class BGTestRunner:
+    def __init__(self, result):
+        self.result = result
+        self.done = False
+        self.timer = QtCore.QTimer()
+        self.timer.connect(self.timer, 
+                   QtCore.SIGNAL('timeout()'),
+                   self.tick
+                   )
+    
+    def run(self, test):
+        self.done = False
+        self.q = Queue()
+        self.result.setAmount(test.countTestCases() - 1)
+        p = Process(target=self.bg_process, args=(test, self.q))
+        p.start()
+        self.timer.start()
+    
+    def tick(self):
+        #print '.',
+        c = True
+        while c:
+            try:
+                data = self.q.get_nowait()
+                if not data:
+                    #print 'closed'
+                    self.timer.stop()
+                    self.done = True
+                    c = False
+                key, args = data
+                self.result.translate[key](*args)
+            except Empty:
+                c = False
+    
+    @staticmethod
+    def bg_process(suite, q):
+        pseudo_file = StringIO.StringIO()
+        sys.stdout = sys.stderr = pseudo_file
+        result = BGTestResult(q, pseudo_file)
+        suite(result)
+        q.close()
         sys.stdout = sys.__stdout__
         sys.stderr = sys.__stderr__
 
