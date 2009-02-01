@@ -17,6 +17,23 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+"""
+QTest is a graphical user interface to the unittest testing framework.
+Below is a minimal example for using it::
+
+    from PyQt4 import QtGui
+    from qtest import QBGTestResult, QBGTestRunner
+    
+    app = QtGui.QApplication(sys.argv)
+    result = QBGTestResult()
+    result.show()
+    suite = unittest.TestSuite(test_cases)
+    display = QBGTestRunner(result)
+    result = display.run(suite)
+    app.exec_()
+"""
+
+
 import sys
 import imp
 import time
@@ -449,7 +466,7 @@ class BGTestResult(TestResult):
         self.pseudo_file.truncate()
 
 
-class BGTestRunner:
+class QBGTestRunner:
     def __init__(self, result):
         self.result = result
         self.done = False
