@@ -463,8 +463,8 @@ class BGTestRunner:
         self.done = False
         self.q = Queue()
         self.result.setAmount(test.countTestCases() - 1)
-        p = Process(target=self.bg_process, args=(test, self.q))
-        p.start()
+        self.proc = Process(target=self.bg_process, args=(test, self.q))
+        self.proc.start()
         self.timer.start()
     
     def tick(self):
@@ -490,6 +490,10 @@ class BGTestRunner:
         q.close()
         sys.stdout = sys.__stdout__
         sys.stderr = sys.__stderr__
+    
+    def stop(self):
+        self.timer.stop()
+        self.proc.terminate()
 
 
 def main():
