@@ -53,7 +53,10 @@ timers = []
 
 def call_init(fun):
     timer = QtCore.QTimer()
-    timer.singleShot(0, fun)
+    def func():
+        fun()
+        timers.remove(timer)
+    timer.singleShot(0, func)
     timers.append(timer)
 
 
