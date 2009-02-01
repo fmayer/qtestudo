@@ -49,6 +49,14 @@ from PyQt4 import QtGui, QtCore
 from unittest import TestResult, TestCase, TestSuite, TestProgram
 
 
+timers = []
+
+def call_init(fun):
+    timer = QtCore.QTimer()
+    timer.singleShot(0, fun)
+    timers.append(timer)
+
+
 class QTestLoader(QtGui.QDialog):
     def __init__(self):
         QtGui.QDialog.__init__(self)
@@ -196,7 +204,7 @@ class QTestWindow(QtGui.QMainWindow):
         self.setWindowTitle("QTest")
         
         self.cases = []
-        self.result = QTestResult()
+        self.result = QTestResult(self.update_status)
         self.runner = QTestRunner(self.result)
         self.setCentralWidget(self.result)
         
@@ -210,6 +218,7 @@ class QTestWindow(QtGui.QMainWindow):
         
         file_menu = menubar.addMenu('&File')
         file_menu.addAction(load)
+        self.statusBar().showMessage('')
     
     def update_status(self, test):
         self.statusBar().showMessage('Running %s' % test)
@@ -455,9 +464,12 @@ def main():
     result = win.result
     runner = QTestRunner(result)
     win.show()
-    QTestProgram(testRunner=runner)
+    call_init(lambda: QTestProgram(testRunner=runner))
     app.exec_()
 
 
 if __name__ == "__main__":
-    main()
+    app = QtGui.QApplication(sys.argv)
+    win = QTestWindow()
+    win.show()
+    app.exec_()
