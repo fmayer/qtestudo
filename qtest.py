@@ -31,6 +31,19 @@ Below is a minimal example for using it::
     display = QBGTestRunner(result)
     result = display.run(suite)
     app.exec_()
+
+QTest also has function mimicing unittest.main::
+
+import unittest
+import qtest
+
+def SomeTest(unittest.TestCase):
+    def test_foo(self):
+        print 'You should see this in the UI'
+        self.assertEquals(1, 2)
+
+if __name__ == '__main__':
+    qtest.main()
 """
 
 
