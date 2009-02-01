@@ -329,12 +329,6 @@ class QTestResult(TestResult, QtGui.QWidget):
         view.show()
         self.views.append(view)
 
-    def getDescription(self, test):
-        if self.descriptions:
-            return test.shortDescription() or str(test)
-        else:
-            return str(test)
-
     def startTest(self, test):
         self.pseudo_file.clear()
         TestResult.startTest(self, test)
@@ -398,8 +392,8 @@ class QBGTestResult(QTestResult):
     
     def addSuccess(self, test_name, test_descr, outp):
         item = QtGui.QListWidgetItem(test_name)
-        if outp:
-            item.setToolTip(outp)
+        if test_descr:
+            item.setToolTip(test_descr)
         self.success_data.append(
             (test_name, test_descr, outp, '')
         )
@@ -408,8 +402,8 @@ class QBGTestResult(QTestResult):
     
     def addFailure(self, test_name, test_descr, tb, outp):
         item = QtGui.QListWidgetItem(test_name)
-        if outp:
-            item.setToolTip(outp)
+        if test_descr:
+            item.setToolTip(test_descr)
         self.fail_data.append(
             (test_name, test_descr, outp, tb)
         )
@@ -418,8 +412,8 @@ class QBGTestResult(QTestResult):
     
     def addError(self, test_name, test_descr, tb, outp):
         item = QtGui.QListWidgetItem(test_name)
-        if outp:
-            item.setToolTip(outp)
+        if test_descr:
+            item.setToolTip(test_descr)
         self.error_data.append(
             (test_name, test_descr, outp, tb)
         )
