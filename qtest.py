@@ -37,6 +37,7 @@ Below is a minimal example for using it::
 import sys
 import imp
 import time
+import types
 import inspect
 import StringIO
 import traceback
@@ -45,7 +46,7 @@ from multiprocessing import Queue, Process
 from Queue import Empty
 
 from PyQt4 import QtGui, QtCore
-from unittest import TestResult, TestCase, TestSuite
+from unittest import TestResult, TestCase, TestSuite, TestProgram
 
 
 class QTestLoader(QtGui.QDialog):
@@ -274,11 +275,13 @@ class QTestResult(QtGui.QWidget, TestResult):
         
         self.translate = {
             'success': self.addSuccess,'failure': self.addFailure,
-            'error': self.addError, 'start': self.startTest
+            'error': self.addError, 'start': self.startTest,
         }
     
     def setAmount(self, amount):
-        self.progress.setRange(0, amount)
+        self.progress.setValue(0)
+        self.progress.setMaximum(amount)
+        self.progress.setMinimum(0)
     
     def successItemDoubleClicked(self, item):
         indx = self.success.indexFromItem(item).row()
@@ -352,9 +355,6 @@ class BGTestResult(TestResult):
         self.queue = queue
         self.pseudo_file = pseudo_file
     
-    def setAmount(self, amount):
-        self.queue.put(("amount", [amount]))
-    
     def startTest(self, test):
         self.clearOutput()
         test_name = str(test)
@@ -399,7 +399,7 @@ class QTestRunner:
     def run(self, test):
         self.done = False
         self.q = Queue()
-        self.result.setAmount(test.countTestCases() - 1)
+        self.result.setAmount(test.countTestCases())
         self.proc = Process(target=self.bg_process, args=(test, self.q))
         self.proc.start()
         self.timer.start()
@@ -409,12 +409,13 @@ class QTestRunner:
         while c:
             try:
                 data = self.q.get_nowait()
-                if not data:
+                if not data or data == 'END':
                     self.timer.stop()
                     self.done = True
                     c = False
-                key, args = data
-                self.result.translate[key](*args)
+                else:
+                    key, args = data
+                    self.result.translate[key](*args)
             except Empty:
                 c = False
     
@@ -424,6 +425,7 @@ class QTestRunner:
         sys.stdout = sys.stderr = pseudo_file
         result = BGTestResult(q, pseudo_file)
         suite(result)
+        q.put('END')
         q.close()
         sys.stdout = sys.__stdout__
         sys.stderr = sys.__stderr__
@@ -433,10 +435,27 @@ class QTestRunner:
         self.proc.terminate()
 
 
+class QTestProgram(TestProgram):
+    def runTests(self):
+        if isinstance(self.testRunner, (type, types.ClassType)):
+            try:
+                testRunner = self.testRunner(verbosity=self.verbosity)
+            except TypeError:
+                # didn't accept the verbosity argument
+                testRunner = self.testRunner()
+        else:
+            # it is assumed to be a TestRunner instance
+            testRunner = self.testRunner
+        testRunner.run(self.test)
+
+
 def main():
     app = QtGui.QApplication(sys.argv)
-    test = QTestWindow()
-    test.show()
+    win = QTestWindow()
+    result = win.result
+    runner = QTestRunner(result)
+    win.show()
+    QTestProgram(testRunner=runner)
     app.exec_()
 
 
