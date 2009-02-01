@@ -84,6 +84,11 @@ class QTestLoader(QtGui.QDialog):
         buttons.addButton(QtGui.QDialogButtonBox.Ok)
         buttons.addButton(QtGui.QDialogButtonBox.Cancel)
         
+        self.connect(buttons, QtCore.SIGNAL('accepted()'), self,
+                     QtCore.SLOT('accept()'))
+        self.connect(buttons, QtCore.SIGNAL('rejected()'), self,
+                     QtCore.SLOT('reject()'))
+        
         main = QtGui.QVBoxLayout()
         main.addLayout(file_layout)
         main.addLayout(list_layout)
@@ -201,7 +206,7 @@ class QTestWindow(QtGui.QMainWindow):
     
     def load_testcases(self):
         selector = QTestLoader()
-        selector.show()
+        selector.exec_()
         self.cases = TestSuite(selector.selected)
     
 
@@ -353,7 +358,7 @@ class QTestResult(TestResult, QtGui.QWidget):
 
 def main():
     app = QtGui.QApplication(sys.argv)
-    test = QTestLoader()
+    test = QTestWindow()
     test.show()
     app.exec_()
 
