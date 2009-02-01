@@ -458,6 +458,7 @@ class BGTestRunner:
                    QtCore.SIGNAL('timeout()'),
                    self.tick
                    )
+        self.timer.setInterval(500)
     
     def run(self, test):
         self.done = False
