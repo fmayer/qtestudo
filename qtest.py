@@ -408,19 +408,25 @@ class BGTestResult(TestResult):
     def addSuccess(self, test):
         test_name = str(test)
         test_descr = test.shortDescription()
-        self.queue.put(("success", [test_name, test_descr, self.getOutput()]))
+        self.queue.put(
+            ("success", [test_name, test_descr, self.getOutput()])
+        )
     
     def addError(self, test, err):
         test_name = str(test)
         test_descr = test.shortDescription()
         tb = ''.join(traceback.format_exception(*err))
-        self.queue.put(("error", [test_name, test_descr, tb, self.getOutput()]))
+        self.queue.put(
+            ("error", [test_name, test_descr, tb, self.getOutput()])
+        )
     
     def addFailure(self, test, err):
         test_name = str(test)
         test_descr = test.shortDescription()
         tb = ''.join(traceback.format_exception(*err))
-        self.queue.put(("failure", [test_name, test_descr, tb, self.getOutput()]))
+        self.queue.put(
+            ("failure", [test_name, test_descr, tb, self.getOutput()])
+        )
     
     def getOutput(self):
         return self.pseudo_file.getvalue()
