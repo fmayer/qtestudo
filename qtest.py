@@ -125,9 +125,6 @@ class QTestLoader(QtGui.QDialog):
         self.setLayout(main)
     
     def selectItem(self, item):
-        # FIXME: This is supposed to move the item of the Qt list
-        # from testcases to selectedlist and move the object from
-        # objects to selected.
         indx = self.testcases.indexFromItem(item).row()
         self.testcases.takeItem(indx)
         self.selected.append(self.objects.pop(indx))
@@ -136,9 +133,6 @@ class QTestLoader(QtGui.QDialog):
         self.testcases.scrollToBottom()
     
     def removeItem(self, item):
-        # FIXME: This is supposed to move the item of the Qt list
-        # from selectedlist to testcases and move the object from
-        # selected to objects.
         indx = self.selectedlist.indexFromItem(item).row()
         self.selectedlist.takeItem(indx)
         self.objects.append(self.selected.pop(indx))
