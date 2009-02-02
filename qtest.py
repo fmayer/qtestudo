@@ -208,7 +208,7 @@ class QTestLoader(QtGui.QDialog):
     
     def load(self):
         filename = QtGui.QFileDialog.getOpenFileNames(
-            self, 'Open file', '.')
+            self, 'Open file', '.', "Python Source (*.py)")
         files = map(str, list(filename))
         for f_name in files:
             mod_name = os.path.splitext(os.path.split(f_name)[1])[0]
