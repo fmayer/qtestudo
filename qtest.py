@@ -39,6 +39,7 @@ import qtest
 
 class SomeTest(unittest.TestCase):
     def test_foo(self):
+        " This is the description. "
         print 'You should see this in the UI'
         self.assertEquals(1, 2)
 
@@ -104,9 +105,17 @@ class QTestLoader(QtGui.QDialog):
         file_layout.addWidget(self.file_line, 5)
         file_layout.addWidget(self.file_button, 1)
         
-        list_layout = QtGui.QHBoxLayout()
-        list_layout.addWidget(self.testcases)
-        list_layout.addWidget(self.selectedlist)
+        first_col = QtGui.QVBoxLayout()
+        first_col.addWidget(QtGui.QLabel('Available:'))
+        first_col.addWidget(self.testcases)
+        
+        sec_col = QtGui.QVBoxLayout()
+        sec_col.addWidget(QtGui.QLabel('Selected:'))
+        sec_col.addWidget(self.selectedlist)
+        
+        list_layout = QtGui.QHBoxLayout()        
+        list_layout.addLayout(first_col)
+        list_layout.addLayout(sec_col)
         
         buttons = QtGui.QDialogButtonBox()
         buttons.addButton(QtGui.QDialogButtonBox.Ok)
