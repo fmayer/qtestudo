@@ -129,7 +129,7 @@ class QTestLoader(QtGui.QDialog):
         # from testcases to selectedlist and move the object from
         # objects to selected.
         indx = self.testcases.indexFromItem(item).row()
-        self.testcases.removeItemWidget(item)
+        self.testcases.takeItem(indx)
         self.selected.append(self.objects.pop(indx))
         self.selectedlist.addItem(item)
         self.selectedlist.scrollToBottom()
@@ -140,7 +140,7 @@ class QTestLoader(QtGui.QDialog):
         # from selectedlist to testcases and move the object from
         # selected to objects.
         indx = self.selectedlist.indexFromItem(item).row()
-        self.selectedlist.removeItemWidget(item)
+        self.selectedlist.takeItem(indx)
         self.objects.append(self.selected.pop(indx))
         self.testcases.addItem(item)
         self.selectedlist.scrollToBottom()
