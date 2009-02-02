@@ -25,11 +25,11 @@ Below is a minimal example for using it::
     from qtest import QTestResult, QTestRunner
     
     app = QtGui.QApplication(sys.argv)
-    result = QTestResult()
-    result.show()
+    window = QTestWindow()
+    window.show()
     suite = unittest.TestSuite(test_cases)
-    display = QTestRunner(result)
-    result = display.run(suite)
+    display = QTestRunner(window.result)
+    qtest.call_init(lambda: display.run(suite))
     app.exec_()
 
 QTest also has function mimicing unittest.main::
