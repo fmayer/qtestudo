@@ -76,6 +76,11 @@ from PyQt4 import QtGui, QtCore
 from unittest import TestResult, TestCase, TestSuite, TestProgram, TestLoader
 
 COLORED_PROGRESS = True
+
+BLUE_COLOR = '#6699FF'
+RED_COLOR = '#ff471a'
+GREEN_COLOR = '#b3ff66'
+
 timers = []
 
 def call_init(fun):
@@ -325,7 +330,7 @@ class QTestResult(QtGui.QWidget, TestResult):
         
         self.progress = QtGui.QProgressBar(self)
         if COLORED_PROGRESS:
-            self.setProgressColor('#6699FF')
+            self.setProgressColor(BLUE_COLOR)
         
         self.success = QtGui.QListWidget(self)
         self.fail = QtGui.QListWidget(self)
@@ -468,7 +473,7 @@ QProgressBar::chunk {
             self.reset()
         
         if COLORED_PROGRESS:
-            self.setProgressColor('#6699FF')
+            self.setProgressColor(BLUE_COLOR)
         self.success.clear()
         self.fail.clear()
         self.error.clear()
@@ -485,12 +490,12 @@ QProgressBar::chunk {
         ok = not (self.n_error or self.n_fail)
         if ok:
             if COLORED_PROGRESS:
-                self.setProgressColor('#b3ff66')
+                self.setProgressColor(GREEN_COLOR)
             if self.on_success is not None:
                 self.on_success()
         else:
             if COLORED_PROGRESS:
-                self.setProgressColor('#ff471a')
+                self.setProgressColor(RED_COLOR)
             if self.on_failure is not None:
                 self.on_failure()
     
