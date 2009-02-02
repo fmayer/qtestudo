@@ -48,6 +48,7 @@ if __name__ == '__main__':
 """
 
 
+import os
 import sys
 import imp
 import time
@@ -172,7 +173,8 @@ class QTestLoader(QtGui.QDialog):
             self, 'Open file', '.')
         files = map(str, list(filename))
         for f_name in files:
-            mod = imp.load_source('mod', f_name)
+            mod_name = os.path.splitext(os.path.split(f_name)[1])[0]
+            mod = imp.load_source(mod_name, f_name)
             for n in dir(mod):
                 obj = getattr(mod, n)
                 if inspect.isclass(obj):
@@ -197,6 +199,8 @@ class QTestLoader(QtGui.QDialog):
 class QTestView(QtGui.QWidget):
     def __init__(self, name, desc, outp, error):
         QtGui.QWidget.__init__(self)
+        
+        self.setWindowTitle("QTest - %s" % name)
         
         self.name = QtGui.QLineEdit(name)
         self.name.setReadOnly(True)
