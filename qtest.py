@@ -75,7 +75,7 @@ from Queue import Empty
 from PyQt4 import QtGui, QtCore
 from unittest import TestResult, TestCase, TestSuite, TestProgram, TestLoader
 
-
+COLORED_PROGRESS = True
 timers = []
 
 def call_init(fun):
@@ -275,12 +275,12 @@ class QTestWindow(QtGui.QMainWindow):
         self.statusBar().setStyleSheet('')
     
     def indicateSuccess(self):
-        self.colorStatusBar('#B2FF7F')
+        # self.colorStatusBar('#B2FF7F')
         total = self.result.n_success
         self.statusBar().showMessage("Ran %d tests. OK" % total)
     
     def indicateFailure(self):
-        self.colorStatusBar('#FFB2B2')
+        # self.colorStatusBar('#FFB2B2')
         res = self.result
         total = res.n_success + res.n_fail + res.n_error
         self.statusBar().showMessage(
@@ -324,6 +324,8 @@ class QTestResult(QtGui.QWidget, TestResult):
         self.reset = reset
         
         self.progress = QtGui.QProgressBar(self)
+        if COLORED_PROGRESS:
+            self.setProgressColor('#6699FF')
         
         self.success = QtGui.QListWidget(self)
         self.fail = QtGui.QListWidget(self)
@@ -340,9 +342,9 @@ class QTestResult(QtGui.QWidget, TestResult):
         self.n_error = 0
         
         left = QtGui.QVBoxLayout()
-        left.addWidget(self.progress)
         left.addWidget(QtGui.QLabel('Passed Tests:'))
         left.addWidget(self.success)
+        left.addWidget(self.progress)
         
         right = QtGui.QVBoxLayout()
         right.addWidget(QtGui.QLabel('Tests with Errors:'))
@@ -376,6 +378,17 @@ class QTestResult(QtGui.QWidget, TestResult):
             'success': self.addSuccess,'failure': self.addFailure,
             'error': self.addError, 'start': self.startTest,
         }
+    
+    def setProgressColor(self, color):
+        self.progress.setStyleSheet(""" QProgressBar {
+     border: 2px solid grey;
+     border-radius: 5px;
+     text-align: center;
+ }
+QProgressBar::chunk {
+     background-color: %s;
+     width: 1px;
+}""" % color)
     
     def setAmount(self, amount):
         self.progress.setValue(0)
@@ -454,6 +467,8 @@ class QTestResult(QtGui.QWidget, TestResult):
         if self.reset is not None:
             self.reset()
         
+        if COLORED_PROGRESS:
+            self.setProgressColor('#6699FF')
         self.success.clear()
         self.fail.clear()
         self.error.clear()
@@ -469,9 +484,13 @@ class QTestResult(QtGui.QWidget, TestResult):
     def done(self):
         ok = not (self.n_error or self.n_fail)
         if ok:
+            if COLORED_PROGRESS:
+                self.setProgressColor('#b3ff66')
             if self.on_success is not None:
                 self.on_success()
         else:
+            if COLORED_PROGRESS:
+                self.setProgressColor('#ff471a')
             if self.on_failure is not None:
                 self.on_failure()
     
