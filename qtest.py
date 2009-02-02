@@ -49,7 +49,7 @@ if __name__ == '__main__':
 Additionally, if you run this file directly, you will be able to select
 the TestCases you want to run using File->Open, then open files and
 double click the TestCases you want to run, or press "Select All" to
-select all.
+select all. Run them using File->Run afterwards.
 
 Please note that if you open new TestCases after having opened others the
 same way before, only the new ones will be run.
