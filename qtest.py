@@ -117,6 +117,11 @@ class QTestLoader(QtGui.QDialog):
         list_layout.addLayout(first_col)
         list_layout.addLayout(sec_col)
         
+        select_all = QtGui.QPushButton('Select All')
+        
+        self.connect(select_all, QtCore.SIGNAL('clicked()'),
+                     self.selectAll)
+        
         buttons = QtGui.QDialogButtonBox()
         buttons.addButton(QtGui.QDialogButtonBox.Ok)
         buttons.addButton(QtGui.QDialogButtonBox.Cancel)
@@ -126,12 +131,25 @@ class QTestLoader(QtGui.QDialog):
         self.connect(buttons, QtCore.SIGNAL('rejected()'), self,
                      QtCore.SLOT('reject()'))
         
+        button_lay = QtGui.QHBoxLayout()
+        button_lay.addWidget(select_all)
+        button_lay.addWidget(buttons)
+        
         main = QtGui.QVBoxLayout()
         main.addLayout(file_layout)
         main.addLayout(list_layout)
-        main.addWidget(buttons)
+        main.addLayout(button_lay)
         
         self.setLayout(main)
+    
+    def selectAll(self):
+        items = []
+        for i in xrange(self.testcases.count()):
+            items.append(self.testcases.item(0))
+            self.selected.append(self.objects.pop(0))
+            self.testcases.takeItem(0)
+        for item in items:
+            self.selectedlist.addItem(item)
     
     def selectItem(self, item):
         indx = self.testcases.indexFromItem(item).row()
@@ -258,10 +276,10 @@ class QTestWindow(QtGui.QMainWindow):
     
     def run_testcases(self):
         if not self.cases:
-            return
-        
-        suite = TestSuite(self.cases)
-        self.runner.run(suite)
+            self.statusBar().showMessage('No TestCases selected.')
+        else:
+            suite = TestSuite(self.cases)
+            self.runner.run(suite)
 
 
 class QTestResult(QtGui.QWidget, TestResult):
