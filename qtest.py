@@ -59,7 +59,7 @@ from multiprocessing import Queue, Process
 from Queue import Empty
 
 from PyQt4 import QtGui, QtCore
-from unittest import TestResult, TestCase, TestSuite, TestProgram
+from unittest import TestResult, TestCase, TestSuite, TestProgram, TestLoader
 
 
 timers = []
@@ -230,19 +230,35 @@ class QTestWindow(QtGui.QMainWindow):
         self.connect(load, QtCore.SIGNAL('triggered()'),
                      self.load_testcases)
         
+        run = QtGui.QAction('&Run', self)
+        run.setStatusTip('Run test cases')
+        self.connect(run, QtCore.SIGNAL('triggered()'),
+                     self.run_testcases)
+        
         menubar = self.menuBar()
         
         file_menu = menubar.addMenu('&File')
         file_menu.addAction(load)
+        file_menu.addAction(run)
         self.statusBar().showMessage('')
     
     def update_status(self, test):
         self.statusBar().showMessage('Running %s' % test)
     
     def load_testcases(self):
+        loader = TestLoader()
         selector = QTestLoader()
+        self.cases[:] = []
         if selector.exec_():
-            self.cases = TestSuite([s() for s in selector.selected])
+            for case in selector.selected:
+                self.cases.extend(loader.loadTestsFromTestCase(case))
+    
+    def run_testcases(self):
+        if not self.cases:
+            return
+        
+        suite = TestSuite(self.cases)
+        self.runner.run(suite)
 
 
 class QTestResult(QtGui.QWidget, TestResult):
