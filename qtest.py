@@ -179,17 +179,7 @@ class QTestLoader(QtGui.QDialog):
                 obj = getattr(mod, n)
                 if inspect.isclass(obj):
                     if issubclass(obj, TestCase):
-                        item = QtGui.QListWidgetItem(
-                            'TestCase: ' + obj.__name__
-                        )
-                        item.setToolTip(f_name)
-                        self.testcases.addItem(item)
-                        self.testcases.scrollToBottom()
-                        self.objects.append(obj)
-                    elif issubclass(obj, TestSuite):
-                        item = QtGui.QListWidgetItem(
-                            'TestSuite: ' + obj.__name__
-                        )
+                        item = QtGui.QListWidgetItem(obj.__name__)
                         item.setToolTip(f_name)
                         self.testcases.addItem(item)
                         self.testcases.scrollToBottom()
