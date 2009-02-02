@@ -247,7 +247,8 @@ class QTestWindow(QtGui.QMainWindow):
         self.setWindowTitle("QTest")
         
         self.cases = []
-        self.result = QTestResult(self.update_status)
+        self.result = QTestResult(self.updateStatus, self.indicateSuccess,
+                                  self.indicateFailure, self.reset)
         self.runner = QTestRunner(self.result)
         self.setCentralWidget(self.result)
         
@@ -255,12 +256,12 @@ class QTestWindow(QtGui.QMainWindow):
         load.setShortcut('Ctrl+O')
         load.setStatusTip('Load test cases')
         self.connect(load, QtCore.SIGNAL('triggered()'),
-                     self.load_testcases)
+                     self.loadTestCases)
         
         run = QtGui.QAction('&Run', self)
         run.setStatusTip('Run test cases')
         self.connect(run, QtCore.SIGNAL('triggered()'),
-                     self.run_testcases)
+                     self.runTestCases)
         
         menubar = self.menuBar()
         
@@ -269,10 +270,33 @@ class QTestWindow(QtGui.QMainWindow):
         file_menu.addAction(run)
         self.statusBar().showMessage('')
     
-    def update_status(self, test):
+    def reset(self):
+        self.statusBar().showMessage('')
+        self.statusBar().setStyleSheet('')
+    
+    def indicateSuccess(self):
+        self.colorStatusBar('#B2FF7F')
+        total = self.result.n_success
+        self.statusBar().showMessage("Ran %d tests. OK" % total)
+    
+    def indicateFailure(self):
+        self.colorStatusBar('#FFB2B2')
+        res = self.result
+        total = res.n_success + res.n_fail + res.n_error
+        self.statusBar().showMessage(
+            "Ran %d tests. %d failed, %d errors." % 
+            (total, res.n_fail, res.n_error)
+        )
+    
+    def colorStatusBar(self, color):
+        self.statusBar().setStyleSheet("QStatusBar {\n"
+         "background: %s;\n"
+         "}" % color)
+    
+    def updateStatus(self, test):
         self.statusBar().showMessage(test)
     
-    def load_testcases(self):
+    def loadTestCases(self):
         loader = TestLoader()
         selector = QTestLoader()
         if selector.exec_():
@@ -280,7 +304,7 @@ class QTestWindow(QtGui.QMainWindow):
             for case in selector.selected:
                 self.cases.extend(loader.loadTestsFromTestCase(case))
     
-    def run_testcases(self):
+    def runTestCases(self):
         if not self.cases:
             self.statusBar().showMessage('No TestCases selected.')
         else:
@@ -289,12 +313,15 @@ class QTestWindow(QtGui.QMainWindow):
 
 
 class QTestResult(QtGui.QWidget, TestResult):
-    def __init__(self, status=None, descriptions=True):
+    def __init__(self, status=None, on_success=None, on_failure=None,
+                 reset=None):
         TestResult.__init__(self)
         QtGui.QWidget.__init__(self)
         
         self.status = status
-        self.descriptions = descriptions
+        self.on_success = on_success
+        self.on_failure = on_failure
+        self.reset = reset
         
         self.progress = QtGui.QProgressBar(self)
         
@@ -424,21 +451,29 @@ class QTestResult(QtGui.QWidget, TestResult):
         self.error.scrollToBottom()
     
     def enter(self):
+        if self.reset is not None:
+            self.reset()
+        
+        self.success.clear()
+        self.fail.clear()
+        self.error.clear()
+        
+        self.success_data[:] = []
+        self.fail_data[:] = []
+        self.error_data[:] = []
+        
         self.n_success = 0
         self.n_fail = 0
         self.n_error = 0
     
     def done(self):
         ok = not (self.n_error or self.n_fail)
-        total = self.n_success + self.n_fail + self.n_error
-        if self.status is not None:
-            if ok:
-                self.status("Ran %d tests. OK" % total)
-            else:
-                self.status(
-                    "Ran %d tests. %d failed, %d errors." % 
-                    (total, self.n_fail, self.n_error)
-                )
+        if ok:
+            if self.on_success is not None:
+                self.on_success()
+        else:
+            if self.on_failure is not None:
+                self.on_failure()
     
 
 
@@ -500,7 +535,7 @@ class QTestRunner:
         self.q = Queue()
         self.result.setAmount(test.countTestCases())
         self.result.enter()
-        self.proc = Process(target=self.bg_process, args=(test, self.q))
+        self.proc = Process(target=self.bgProcess, args=(test, self.q))
         self.proc.start()
         self.timer.start()
     
@@ -521,7 +556,7 @@ class QTestRunner:
                 c = False
     
     @staticmethod
-    def bg_process(suite, q):
+    def bgProcess(suite, q):
         pseudo_file = StringIO.StringIO()
         sys.stdout = sys.stderr = pseudo_file
         result = BGTestResult(q, pseudo_file)
