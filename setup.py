@@ -34,7 +34,7 @@ except ImportError:
 
 setup(
     name='qtest',
-    version='0.1',
+    version='0.1.0',
     description='Graphical User Interface for the unittest framework.',
     author='Florian Mayer',
     author_email='flormayer@aim.com',
@@ -44,4 +44,13 @@ setup(
     zip_safe=True,
     py_modules=['qtest'],
     install_requires=dep,
+    classifiers = [
+        'Development Status :: 4 - Beta',
+        'Environment :: X11 Applications :: Qt',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: GNU General Public License (GPL)',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Topic :: Software Development :: Testing',
+    ]   
 )

@@ -34,17 +34,17 @@ Below is a minimal example for using it::
 
 QTest also has function mimicing unittest.main::
 
-import unittest
-import qtest
-
-class SomeTest(unittest.TestCase):
-    def test_foo(self):
-        " This is the description. "
-        print 'You should see this in the UI'
-        self.assertEquals(1, 2)
-
-if __name__ == '__main__':
-    qtest.main()
+    import unittest
+    import qtest
+    
+    class SomeTest(unittest.TestCase):
+        def test_foo(self):
+            " This is the description. "
+            print 'You should see this in the UI'
+            self.assertEquals(1, 2)
+    
+    if __name__ == '__main__':
+        qtest.main()
 
 Additionally, if you run this file directly, you will be able to select
 the TestCases you want to run using File->Open, then open files and
