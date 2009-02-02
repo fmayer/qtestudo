@@ -92,6 +92,27 @@ def call_init(fun):
     timers.append(timer)
 
 
+class QExceptionDialog(QtGui.QDialog):
+    def __init__(self, msg, title=None):
+        QtGui.QDialog.__init__(self)
+        
+        buttons = QtGui.QDialogButtonBox()
+        buttons.addButton(QtGui.QDialogButtonBox.Ok)
+        
+        self.connect(buttons, QtCore.SIGNAL('accepted()'), self,
+                     QtCore.SLOT('accept()'))
+        
+        main = QtGui.QVBoxLayout()
+        if title is not None:
+            main.addWidget(QtGui.QLabel(title))
+        entry = QtGui.QTextEdit(msg)
+        entry.setReadOnly(True)
+        main.addWidget(entry)
+        main.addWidget(buttons)
+        
+        self.setLayout(main)
+
+
 class QTestLoader(QtGui.QDialog):
     def __init__(self):
         QtGui.QDialog.__init__(self)
@@ -191,7 +212,15 @@ class QTestLoader(QtGui.QDialog):
         files = map(str, list(filename))
         for f_name in files:
             mod_name = os.path.splitext(os.path.split(f_name)[1])[0]
-            mod = imp.load_source(mod_name, f_name)
+            try:
+                mod = imp.load_source(mod_name, f_name)
+            except:
+                tb = ''.join(traceback.format_exception(*sys.exc_info()))
+                msg = QExceptionDialog(
+                    tb, 'An exception occured while importing the module'
+                )
+                msg.exec_()
+                continue
             for n in dir(mod):
                 obj = getattr(mod, n)
                 if inspect.isclass(obj):
