@@ -242,8 +242,8 @@ class QTestWindow(QtGui.QMainWindow):
     def load_testcases(self):
         loader = TestLoader()
         selector = QTestLoader()
-        self.cases[:] = []
         if selector.exec_():
+            self.cases[:] = []
             for case in selector.selected:
                 self.cases.extend(loader.loadTestsFromTestCase(case))
     
