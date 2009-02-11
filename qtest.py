@@ -19,16 +19,29 @@
 
 """
 QTest is a graphical user interface to the unittest testing framework.
-Below is a minimal example for using it::
+Below is a minimal working example for using it::
 
     from PyQt4 import QtGui
-    from qtest import QTestResult, QTestRunner
-    
+    import qtest
+    import unittest
+    import sys
+
+    class ExampleTestCase(unittest.TestCase):
+        def testDummy(self):
+            self.assertEquals(2+2, 4)
+        def testWillFail(self):
+            self.assertEquals(2*2, 5)
+        def testWillError(self):
+            self.assertEquals(2+'2',5)
+        
+    suite = unittest.TestSuite()
+    suite.addTest(unittest.defaultTestLoader.
+                    loadTestsFromTestCase(ExampleTestCase))
+
     app = QtGui.QApplication(sys.argv)
-    window = QTestWindow()
+    window = qtest.QTestWindow()
     window.show()
-    suite = unittest.TestSuite(test_cases)
-    display = QTestRunner(window.result)
+    display = qtest.QTestRunner(window.result)
     qtest.call_init(lambda: display.run(suite))
     app.exec_()
 
