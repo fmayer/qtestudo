@@ -1,6 +1,6 @@
 # -*- coding: us-ascii -*-
 
-# qtest - unittest UI using PyQt
+# qtestudo - unittest UI using PyQt
 # Copyright (C) 2008 Florian Mayer
 
 # This program is free software: you can redistribute it and/or modify
@@ -18,11 +18,11 @@
 
 
 """
-QTest is a graphical user interface to the unittest testing framework.
+qtestudo is a graphical user interface to the unittest testing framework.
 Below is a minimal working example for using it::
 
     from PyQt4 import QtGui
-    import qtest
+    import qtestudo
     import unittest
     import sys
 
@@ -39,16 +39,16 @@ Below is a minimal working example for using it::
                     loadTestsFromTestCase(ExampleTestCase))
 
     app = QtGui.QApplication(sys.argv)
-    window = qtest.QTestWindow()
+    window = qtestudo.QTestWindow()
     window.show()
-    display = qtest.QTestRunner(window.result)
-    qtest.call_init(lambda: display.run(suite))
+    display = qtestudo.QTestRunner(window.result)
+    qtestudo.call_init(lambda: display.run(suite))
     app.exec_()
 
-QTest also has function mimicing unittest.main::
+qtestudo also has function mimicing unittest.main::
 
     import unittest
-    import qtest
+    import qtestudo
     
     class SomeTest(unittest.TestCase):
         def test_foo(self):
@@ -57,7 +57,7 @@ QTest also has function mimicing unittest.main::
             self.assertEquals(1, 2)
     
     if __name__ == '__main__':
-        qtest.main()
+        qtestudo.main()
 
 Additionally, if you run this file directly, you will be able to select
 the TestCases you want to run using File->Open, then open files and

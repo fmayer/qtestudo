@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# qtest - unittest UI using PyQt
+# qtestudo - unittest UI using PyQt
 # Copyright (C) 2008 Florian Mayer
 
 # This program is free software: you can redistribute it and/or modify
@@ -18,32 +18,38 @@
 
 import imp
 
+def depends(deps):
+    dependencies = []
+    for dep in deps:
+        try:
+            imp.find_module(dep)
+        except ImportError:
+            dependencies.append(dep)
+    return dependencies
+
+
 try:
     # So that we can use 'develop'.
     from setuptools import setup
+    SETUPTOOLS = True
 except:
     # For end-users distutils is okay too.
     from distutils.core import setup
+    SETUPTOOLS = False
 
-dep = []
 
-try:
-    imp.find_module('PyQt4')
-except ImportError:
-    dep.append('PyQt4')
-
-setup(
-    name='qtest',
+params = dict(
+    name='qtestudo',
     version='0.1.0',
     description='Graphical User Interface for the unittest framework.',
     author='Florian Mayer',
     author_email='flormayer@aim.com',
-    url='http://bitbucket.org/segfaulthunter/qtest-mainline/',
+    url='http://bitbucket.org/segfaulthunter/qtestudo-mainline/',
     keywords='unittest gui ui user-interface',
     license='GPL',
     zip_safe=True,
-    py_modules=['qtest'],
-    install_requires=dep,
+    py_modules=['qtestudo'],
+    install_requires=depends(['PyQt4']),
     classifiers = [
         'Development Status :: 4 - Beta',
         'Environment :: X11 Applications :: Qt',
@@ -52,5 +58,14 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Topic :: Software Development :: Testing',
-    ]   
+    ]
 )
+
+
+if not SETUPTOOLS:
+    del params['zip_safe']
+    del params['install_requires']
+
+
+if __name__ == '__main__':
+    setup(**params)
