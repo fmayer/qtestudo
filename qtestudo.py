@@ -249,7 +249,7 @@ class QTestView(QtGui.QWidget):
     def __init__(self, name, desc, outp, error):
         QtGui.QWidget.__init__(self)
         
-        self.setWindowTitle("QTest - %s" % name)
+        self.setWindowTitle("QTestudo - %s" % name)
         
         self.name = QtGui.QLineEdit(name)
         self.name.setReadOnly(True)
@@ -291,7 +291,7 @@ class QTestWindow(QtGui.QMainWindow):
     def __init__(self):
         QtGui.QMainWindow.__init__(self)
         
-        self.setWindowTitle("QTest")
+        self.setWindowTitle("QTestudo")
         
         self.cases = []
         self.result = QTestResult(self.updateStatus, self.indicateSuccess,
