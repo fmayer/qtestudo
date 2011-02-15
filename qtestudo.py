@@ -321,18 +321,20 @@ class QTestWindow(QtGui.QMainWindow):
         self.statusBar().showMessage('')
         self.statusBar().setStyleSheet('')
     
-    def indicateSuccess(self):
+    def indicateSuccess(self, elapsed):
         # self.colorStatusBar('#B2FF7F')
         total = self.result.n_success
-        self.statusBar().showMessage("Ran %d tests. OK" % total)
+        self.statusBar().showMessage(
+            "Ran %d tests in %.3f s. OK." % (total, elapsed)
+        )
     
-    def indicateFailure(self):
+    def indicateFailure(self, elapsed):
         # self.colorStatusBar('#FFB2B2')
         res = self.result
         total = res.n_success + res.n_fail + res.n_error
         self.statusBar().showMessage(
-            "Ran %d tests. %d failed, %d errors." % 
-            (total, res.n_fail, res.n_error)
+            "Ran %d tests in %.3f s. %d failed, %d errors." %
+            (total, elapsed, res.n_fail, res.n_error)
         )
     
     def colorStatusBar(self, color):
@@ -424,6 +426,7 @@ class QTestResult(QtGui.QWidget, TestResult):
         self.translate = {
             'success': self.addSuccess,'failure': self.addFailure,
             'error': self.addError, 'start': self.startTest,
+            'done': self.done
         }
     
     def setProgressColor(self, color):
@@ -528,18 +531,18 @@ QProgressBar::chunk {
         self.n_fail = 0
         self.n_error = 0
     
-    def done(self):
+    def done(self, elapsed):
         ok = not (self.n_error or self.n_fail)
         if ok:
             if COLORED_PROGRESS:
                 self.setProgressColor(GREEN_COLOR)
             if self.on_success is not None:
-                self.on_success()
+                self.on_success(elapsed)
         else:
             if COLORED_PROGRESS:
                 self.setProgressColor(RED_COLOR)
             if self.on_failure is not None:
-                self.on_failure()
+                self.on_failure(elapsed)
     
 
 
@@ -610,14 +613,12 @@ class QTestRunner:
         while c:
             try:
                 data = self.q.get_nowait()
-                if not data or data == 'END':
+                key, args = data
+                if key == 'done':
                     self.timer.stop()
                     self.done = True
-                    self.result.done()
                     c = False
-                else:
-                    key, args = data
-                    self.result.translate[key](*args)
+                self.result.translate[key](*args)
             except Empty:
                 c = False
     
@@ -626,8 +627,9 @@ class QTestRunner:
         pseudo_file = StringIO.StringIO()
         sys.stdout = sys.stderr = pseudo_file
         result = BGTestResult(q, pseudo_file)
+        start = time.time()
         suite(result)
-        q.put('END')
+        q.put(('done', [time.time() - start]))
         q.close()
         sys.stdout = sys.__stdout__
         sys.stderr = sys.__stderr__
