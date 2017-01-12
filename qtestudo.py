@@ -77,7 +77,6 @@ import os
 import sys
 import imp
 import time
-import types
 import inspect
 import StringIO
 import traceback
@@ -641,7 +640,7 @@ class QTestRunner:
 
 class QTestProgram(TestProgram):
     def runTests(self):
-        if isinstance(self.testRunner, (type, types.ClassType)):
+        if inspect.isclass(self.testRunner):
             try:
                 testRunner = self.testRunner(verbosity=self.verbosity)
             except TypeError:
